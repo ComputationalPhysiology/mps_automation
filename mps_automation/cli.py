@@ -1,14 +1,12 @@
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 import typer
 
 from .collect import run
 
-PathStr = Union[str, Path]
 
-
-def main(folder: PathStr, config_file: Optional[PathStr] = None):
+def main(folder: str, config_file: Optional[str] = None):
     """Run automation script for MPS analysis
 
     \b
@@ -22,25 +20,25 @@ def main(folder: PathStr, config_file: Optional[PathStr] = None):
         folder you are trying to analyze
     """
 
-    folder = Path(folder)
-    if not folder.is_dir():
+    folder_: Path = Path(folder)
+    if not folder_.is_dir():
         typer.echo(f"Folder {folder} is not a directory")
         raise typer.Exit(code=1)
 
     if config_file is None:
-        config_file = folder.joinpath("config.yaml")
-    config_file = Path(config_file)
-    if not config_file.is_file():
+        config_file = folder_.joinpath("config.yaml").as_posix()
+    config_file_: Path = Path(config_file)
+    if not config_file_.is_file():
         typer.echo(f"Cannot find config file at {config_file}")
         raise typer.Exit(code=2)
 
     valid_extensions = [".yml", ".yaml"]
-    if config_file.suffix not in valid_extensions:
+    if config_file_.suffix not in valid_extensions:
         typer.echo(
             f"Config file has an invalid extension. Expected of of "
-            f"{valid_extensions} got {config_file.suffix}"
+            f"{valid_extensions} got {config_file_.suffix}"
         )
         raise typer.Exit(code=3)
 
     typer.echo(f"Analyzing folder {folder}...")
-    run(folder, config_file)
+    run(folder_, config_file_)
