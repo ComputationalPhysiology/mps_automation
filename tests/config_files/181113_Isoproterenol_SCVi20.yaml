@@ -1,0 +1,8 @@
+folder: "181113_Isoproterenol_SCVi20"
+regexs:
+  - "{date}_{dose}_{pacing_frequency}/Point{media}{chip}_Channel{channel}_{roi}_Seq{seq_nr}.nd2"
+  - "{date}_{dose}_{pacing_frequency}/Point{media}{chip}_{control}_Channel{channel}_{roi}_Seq{seq_nr}.nd2"
+uploaded_date: "2019-01-25"
+uploaded_by: "Henrik Finsberg"
+experiment_date: "2018-11-16"
+experiment_by: "Verena Charwat"

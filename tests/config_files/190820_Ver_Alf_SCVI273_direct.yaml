@@ -1,0 +1,9 @@
+folder: "190820_Ver_Alf_SCVI273_direct"
+regexs:
+  - "{date}_{dose}_{pacing_frequency}/Point12/Point{chip}_{media}_{drug}_Channel{channel}_VC_Seq{seq_nr}.nd2"
+  - "{date}_{dose}_{pacing_frequency}/Point{chip}_{media}_{drug}_Channel{channel}_VC_Seq{seq_nr}.nd2"
+uploaded_date: "2019-21-10"
+uploaded_by: "Henrik Finsberg"
+experiment_date: "2019-08-20"
+experiment_by: "Berenice Charrez"
+original_path: 'F:\NikonElementsImages\JOBS\jobsdb Projects\Berenice\190820_Ver_Alf_SCVI273_direct'

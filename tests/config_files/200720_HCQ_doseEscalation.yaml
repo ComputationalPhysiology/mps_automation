@@ -1,0 +1,12 @@
+cell_line: WTC
+date: "2020-07-20"
+drug: Hydroxychloroquine
+excludes: []
+folder: 200720_HCQ_doseEscalation
+info: Add info about experiment here
+operator: Berenice Charrez
+path: /home/henriknf/data/mps/200720_HCQ_doseEscalation
+regexs:
+  - "{dose}_paced/{pacing_frequency}/Point{chip}_Channel{channel}_{roi}_Seq{seq_nr}.nd2"
+rules: []
+uploaded_by: Henrik Finsberg

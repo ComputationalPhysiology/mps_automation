@@ -1,0 +1,8 @@
+folder: "181116_Lidocaine"
+regexs:
+  - "{date}_{dose}_{pacing_frequency}/Point{chip}_{media}_Channel{channel}_{roi}_Seq{seq_nr}.nd2"
+  - "{date}_{dose}_{pacing_frequency}/Point{chip}_{media}_{control}_Channel{channel}_{roi}_Seq{seq_nr}.nd2"
+uploaded_date: "2019-01-25"
+uploaded_by: "Henrik Finsberg"
+experiment_date: "2018-11-16"
+experiment_by: "Verena Charwat"
