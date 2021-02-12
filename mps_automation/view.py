@@ -1,3 +1,4 @@
+import datetime
 import itertools as it
 from collections import namedtuple
 from pathlib import Path
@@ -28,39 +29,53 @@ class View:
             ]
         )
 
-    @property
-    def info(self):
-
+    def get_number_of_recordings(self):
         chips_nr = self._format_str("chip", self.distinct_values.chips)
         pacing_nr = self._format_str("pacing", self.distinct_values.pacing)
         doses_nr = self._format_str("dose", self.distinct_values.doses)
         drugs_nr = self._format_str("drug", self.distinct_values.drugs)
         media_nr = self._format_str("media", self.distinct_values.media)
         trace_type_nr = self._format_str("trace_type", self.distinct_values.trace_types)
+        df = pd.Series(
+            {
+                "drugs": drugs_nr,
+                "pacing": pacing_nr,
+                "doses": doses_nr,
+                "media": media_nr,
+                "trace_type": trace_type_nr,
+                "chips": chips_nr,
+            }
+        )
+        return df
 
+    @property
+    def info(self):
+
+        df = self.get_number_of_recordings()
         s = dedent(
             f"""\
         --- General info ----
         Drugs (recordings):
-        {drugs_nr}
+        {df.drugs}
 
         Doses (recordings): (total: {len(self.distinct_values.doses)} doses)
-        {doses_nr}
+        {df.doses}
 
         Pacing Frequencies (recordings)
-        {pacing_nr}
+        {df.pacing}
 
         Chips (recordings): (total: {len(self.distinct_values.chips)} chips)
-        {chips_nr}
+        {df.chips}
 
         Media (recordings):
-        {media_nr}
+        {df.media}
 
         Trace types (recordings):
-        {trace_type_nr}
+        {df.trace_type}
 
         """
         )
+
         return s
 
     @property
@@ -101,7 +116,10 @@ class View:
 
         return self.session.query(model.Recording).filter(and_(*args))
 
-    def to_excel(self, filename):
+    def to_excel(self, filename, info=None):
+
+        if info is None:
+            info = {}
 
         filename = Path(filename)
         columns = [
@@ -137,7 +155,7 @@ class View:
                 print(f"Will only use {paths[0]}")
 
             d = recs.first()
-            f = d.analysis["features"]
+            f = d.analysis.get("features", {})
             try:
                 bad_trace = not (f["apd30"] < f["apd50"] < f["apd80"])
             except Exception:
@@ -159,13 +177,18 @@ class View:
                 ]
             )
 
+        df_info = {"timestamp": datetime.datetime.now().isoformat()}
+        df_info.update(info)
+        df_info.update(self.get_number_of_recordings().to_dict())
+
+        with pd.ExcelWriter(filename, mode="w") as writer:
+            pd.Series(df_info).to_excel(writer, "info")
+
         df = pd.DataFrame(data, columns=columns)
-        mode = "w"
         for trace_type, df_trace in df.groupby("trace_type"):
             for pacing, df_pacing in df_trace.groupby("pacing"):
-                with pd.ExcelWriter(filename, mode=mode) as writer:
+                with pd.ExcelWriter(filename, mode="a") as writer:
                     df_pacing.to_excel(writer, "-".join([trace_type, pacing]))
-                mode = "a"
 
 
 def delist(x):

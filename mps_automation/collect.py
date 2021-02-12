@@ -144,11 +144,15 @@ def get_analysis(data) -> Dict[str, Any]:
         )
 
     # Run analyis
-    mps_data = mps.MPS(path)
-    return serialize_numpy_dict(mps.analysis.analyze_mps_func(mps_data))
+    try:
+        mps_data = mps.MPS(path)
+        d = serialize_numpy_dict(mps.analysis.analyze_mps_func(mps_data))
+    except Exception:
+        d = {}
+    return d
 
 
-def main(folder, config_file):
+def run(folder, config_file):
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -173,4 +177,11 @@ def main(folder, config_file):
 
     v = View(session)
     print(v.info)
-    v.to_excel(folder.joinpath("data.xlsx"))
+    v.to_excel(
+        folder.joinpath("data.xlsx"),
+        info={
+            "folder": folder.absolute(),
+            "database": sqlite_filepath.absolute(),
+            "config_file": config_file.absolute(),
+        },
+    )

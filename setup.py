@@ -33,11 +33,6 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     description="Scripts for automating the mps analysis",
-    entry_points={
-        "console_scripts": [
-            "mps_automation=mps_automation.cli:main",
-        ],
-    },
     install_requires=requirements,
     long_description=readme + "\n\n" + history,
     long_description_content_type="text/markdown",
