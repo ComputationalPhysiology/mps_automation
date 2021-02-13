@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 from typing import Any, Dict
@@ -12,6 +13,9 @@ from sqlalchemy.orm.session import sessionmaker
 
 from . import model
 from .view import View
+
+mps.set_log_level(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 def check_valid_dose(dose_str: str):
@@ -93,10 +97,23 @@ def get_recording(session: SessionType, path: str):
     return _get_x(session, path, "Recording", check_valid_path)
 
 
-def add_data_to_database(session, data, analysis=None):
-    if analysis is None:
-        analysis = {}
-    recording = get_recording(session, data.get("path", ""))
+def add_data_to_database(session, data, folder, recompute=False):
+
+    path = data.get("path", "")
+    recording = (
+        session.query(model.Recording)
+        .filter(model.Recording.path == path)
+        .one_or_none()
+    )
+
+    if not recompute and recording is not None:
+        return
+
+    if recording is None:
+        check_valid_path(path)
+        recording = model.Recording(path=path)
+
+    analysis = get_analysis(folder, data)
 
     drug = get_drug(session, data.get("drug", ""))
     chip = get_chip(session, data.get("chip", ""))
@@ -132,11 +149,14 @@ def serialize_numpy_dict(d):
     return new_d
 
 
-def get_analysis(data) -> Dict[str, Any]:
+def get_analysis(folder, data) -> Dict[str, Any]:
     # By default we assume that it might be a folder next to the
     # raw data with a `data.npy` file containing the analysis
 
-    path = Path(data.get("path", ""))
+    if data["trace_type"] == "brightfield":
+        return {}
+
+    path = Path(folder).joinpath(data.get("path", ""))
     outdir = path.parent.joinpath(path.stem)
     if outdir.joinpath("data.npy").is_file():
         return serialize_numpy_dict(
@@ -152,7 +172,7 @@ def get_analysis(data) -> Dict[str, Any]:
     return d
 
 
-def run(folder, config_file):
+def run(folder, config_file, recompute=False):
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -168,15 +188,15 @@ def run(folder, config_file):
     for root, dirs, files in os.walk(folder):
         for f in files:
             path = Path(root).joinpath(f)
+            logger.debug(path)
             if path.suffix != ".nd2":
                 continue
 
             data = pathmatcher(path).to_dict()
-            analysis = get_analysis(data)
-            add_data_to_database(session, data, analysis)
+            add_data_to_database(session, data, folder, recompute=recompute)
 
     v = View(session)
-    print(v.info)
+    logger.info(v.info)
     v.to_excel(
         folder.joinpath("data.xlsx"),
         info={

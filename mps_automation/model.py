@@ -8,7 +8,7 @@ Base: DeclarativeMeta = declarative_base()
 class Recording(Base):
     __tablename__ = "recording"
     id = Column(Integer, primary_key=True)
-    value = Column(String, unique=True)  # path
+    path = Column(String, unique=True)
     drug_id = Column(Integer, ForeignKey("drug.id"), nullable=True)
     dose_id = Column(Integer, ForeignKey("dose.id"), nullable=True)
     chip_id = Column(Integer, ForeignKey("chip.id"), nullable=True)

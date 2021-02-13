@@ -1,5 +1,6 @@
 import datetime
 import itertools as it
+import logging
 from collections import namedtuple
 from pathlib import Path
 from textwrap import dedent
@@ -9,6 +10,8 @@ import pandas as pd
 from sqlalchemy import and_
 
 from . import model
+
+logger = logging.getLogger(__name__)
 
 DistinctValues = namedtuple(
     "DistinctValues", ["doses", "drugs", "pacing", "media", "chips", "trace_types"]
@@ -148,14 +151,18 @@ class View:
             )
             if recs.count() == 0:
                 # Missing value
-                d = {}
-            if recs.count() > 1:
-                paths = list(map(lambda x: x.value, recs))
-                print(f"Warning: The following paths have the same parameters {paths}")
-                print(f"Will only use {paths[0]}")
+                f = {}
+            else:
+                if recs.count() > 1:
+                    paths = list(map(lambda x: x.path, recs))
+                    logger.warning(
+                        f"Warning: The following paths have the same parameters {paths}"
+                    )
+                    logger.warning(f"Will only use {paths[0]}")
 
-            d = recs.first()
-            f = d.analysis.get("features", {})
+                d = recs.first()
+                f = d.analysis.get("features", {})
+
             try:
                 bad_trace = not (f["apd30"] < f["apd50"] < f["apd80"])
             except Exception:
