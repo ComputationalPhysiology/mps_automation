@@ -10,13 +10,7 @@ with open("README.md") as readme_file:
 with open("HISTORY.md") as history_file:
     history = history_file.read()
 
-requirements = [
-    "openpyxl",
-    "pandas",
-    "SQLAlchemy",
-    "numpy",
-    "pyyaml",
-]
+requirements = ["openpyxl", "pandas", "SQLAlchemy", "numpy", "pyyaml", "matplotlib"]
 
 setup(
     author="Henrik Finsberg",
