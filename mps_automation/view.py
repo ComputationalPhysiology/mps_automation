@@ -5,6 +5,7 @@ from collections import namedtuple
 from pathlib import Path
 from textwrap import dedent
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sqlalchemy import and_
@@ -119,17 +120,65 @@ class View:
 
         return self.session.query(model.Recording).filter(and_(*args))
 
-    def to_excel(self, filename, info=None):
+    def plot_trace(self, folder):
+        logger.info("Plot traces...")
+        for (drug, trace_type, pacing, dose, media, chip) in it.product(
+            self.distinct_values.drugs,
+            ["calcium", "voltage"],
+            self.distinct_values.pacing,
+            self.distinct_values.doses,
+            self.distinct_values.media,
+            self.distinct_values.chips,
+        ):
+            path = (
+                Path(folder)
+                .joinpath("plots")
+                .joinpath(drug)
+                .joinpath("-".join([trace_type, pacing]))
+                .joinpath("-".join([chip, media]))
+                .joinpath(dose)
+                .with_suffix(".png")
+            )
+            recs = self.get_all(
+                drug=drug,
+                media=media,
+                chip=chip,
+                dose=dose,
+                trace_type=trace_type,
+                pacing=pacing,
+            )
+            if recs.count() == 0:
+                continue
+            d = recs.first()
+            f = d.analysis.get("unchopped_data", {})
+            if not f:
+                continue
 
+            path.parent.mkdir(exist_ok=True, parents=True)
+
+            fig, ax = plt.subplots(2, 1, sharex=True)
+            ax[0].plot(f["original_times"], f["original_trace"])
+            ax[1].plot(f["time"], f["trace"])
+            ax[1].set_xlabel("Time [ms]")
+            ax[0].set_ylabel("Pixel intensity")
+            ax[1].set_ylabel("dF / F0")
+            fig.savefig(path)
+            plt.close()
+        logger.info("Done plotting traces")
+
+    def to_excel(self, filename, info=None):
+        logger.info("Create excel file...")
         if info is None:
             info = {}
 
         filename = Path(filename)
         columns = [
+            "drug",
             "trace_type",
             "pacing",
-            "dose",
+            "media",
             "chip",
+            "dose",
             "APD30",
             "cAPD30",
             "APD80",
@@ -140,14 +189,21 @@ class View:
             "bad_trace",
         ]
         data = []
-        for (trace_type, pacing, dose, chip) in it.product(
+        for (drug, trace_type, pacing, dose, media, chip) in it.product(
+            self.distinct_values.drugs,
             ["calcium", "voltage"],
             self.distinct_values.pacing,
             self.distinct_values.doses,
+            self.distinct_values.media,
             self.distinct_values.chips,
         ):
             recs = self.get_all(
-                chip=chip, dose=dose, trace_type=trace_type, pacing=pacing
+                drug=drug,
+                media=media,
+                chip=chip,
+                dose=dose,
+                trace_type=trace_type,
+                pacing=pacing,
             )
             if recs.count() == 0:
                 # Missing value
@@ -169,10 +225,12 @@ class View:
                 bad_trace = True
             data.append(
                 [
+                    drug,
                     trace_type,
                     pacing,
-                    dose,
+                    media,
                     chip,
+                    dose,
                     f.get("apd30", np.nan),
                     f.get("capd30", np.nan),
                     f.get("apd80", np.nan),
@@ -195,7 +253,11 @@ class View:
         for trace_type, df_trace in df.groupby("trace_type"):
             for pacing, df_pacing in df_trace.groupby("pacing"):
                 with pd.ExcelWriter(filename, mode="a") as writer:
-                    df_pacing.to_excel(writer, "-".join([trace_type, pacing]))
+                    df_pacing.sort_values(by=["chip", "dose"]).to_excel(
+                        writer, "-".join([trace_type, pacing])
+                    )
+
+        logger.info(f"Done creating excel file at {filename}.")
 
 
 def delist(x):

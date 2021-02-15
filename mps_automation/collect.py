@@ -172,7 +172,7 @@ def get_analysis(folder, data) -> Dict[str, Any]:
     return d
 
 
-def run(folder, config_file, recompute=False):
+def run(folder, config_file, recompute: bool = False, plot: bool = True):
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -186,8 +186,9 @@ def run(folder, config_file, recompute=False):
     session: SessionType = Session()
 
     for root, dirs, files in os.walk(folder):
+        root_path = Path(root)
         for f in files:
-            path = Path(root).joinpath(f)
+            path = root_path.joinpath(str(f))
             logger.debug(path)
             if path.suffix != ".nd2":
                 continue
@@ -205,3 +206,5 @@ def run(folder, config_file, recompute=False):
             "config_file": config_file.absolute(),
         },
     )
+    if plot:
+        v.plot_trace(folder)
