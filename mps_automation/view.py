@@ -275,7 +275,7 @@ class View:
         df = pd.DataFrame(data, columns=columns)
         for trace_type, df_trace in df.groupby("trace_type"):
             for pacing, df_pacing in df_trace.groupby("pacing"):
-                with pd.ExcelWriter(filename, mode="a") as writer:
+                with pd.ExcelWriter(filename, engine="openpyxl", mode="a") as writer:
                     df_pacing.sort_values(by=["chip", "dose", "repeat"]).to_excel(
                         writer, "-".join([trace_type, pacing])
                     )
