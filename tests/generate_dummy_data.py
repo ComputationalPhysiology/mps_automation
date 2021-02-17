@@ -15,11 +15,11 @@ def get_dummy_analysis_data(*args, **kwargs):
     trace_type = np.random.choice(["voltage", "calcium"])
     if trace_type == "voltage":
         return np.load(
-            HERE.joinpath("example_traces/voltage_data.npy"),
+            HERE.joinpath("example_traces").joinpath("voltage_data.npy"),
             allow_pickle=True,
         ).item()
     return np.load(
-        HERE.joinpath("example_traces/calcium_data.npy"),
+        HERE.joinpath("example_traces").joinpath("calcium_data.npy"),
         allow_pickle=True,
     ).item()
 
@@ -80,8 +80,8 @@ CONTENT = {
 
 
 def copy_data_traces(channel, dst):
-    calcium_data = HERE.joinpath("example_traces/calcium_data.npy")
-    voltage_data = HERE.joinpath("example_traces/voltage_data.npy")
+    calcium_data = HERE.joinpath("example_traces").joinpath("calcium_data.npy")
+    voltage_data = HERE.joinpath("example_traces").joinpath("voltage_data.npy")
 
     channel_to_data = {"Red": voltage_data, "Cyan": calcium_data}
     shutil.copy(channel_to_data[channel], dst)
@@ -108,7 +108,8 @@ def generate_data(
 
 
 def get_original_config(folder):
-    with open(HERE.joinpath(f"config_files/{folder}.yaml"), "r") as f:
+
+    with open(HERE.joinpath("config_files").joinpath(f"{folder}.yaml"), "r") as f:
         d = yaml.load(f, Loader=yaml.SafeLoader)
     return d
 

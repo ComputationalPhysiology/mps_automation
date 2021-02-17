@@ -20,5 +20,5 @@ def test_main(test_folder):
     experiment = "200720_HCQ_doseEscalation"
     folder = Path(test_folder).joinpath(experiment)
     config = here.joinpath("config_files").joinpath(experiment).with_suffix(".yaml")
-    collect.run(folder, config)
+    collect.run(folder, config, plot=False)
     assert Path(folder.joinpath("data.xlsx")).is_file()
