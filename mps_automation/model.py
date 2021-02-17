@@ -15,6 +15,7 @@ class Recording(Base):
     media_id = Column(Integer, ForeignKey("media.id"), nullable=True)
     pacing_id = Column(Integer, ForeignKey("pacing.id"), nullable=True)
     trace_type_id = Column(Integer, ForeignKey("trace_type.id"), nullable=True)
+    repeat_id = Column(Integer, ForeignKey("repeat.id"), nullable=True)
     analysis = Column(JSON, nullable=False, default={})
 
 
@@ -61,3 +62,10 @@ class Media(Base):
     id = Column(Integer, primary_key=True)
     value = Column(String)
     recordings = relationship("Recording", backref=backref("media"))
+
+
+class Repeat(Base):
+    __tablename__ = "repeat"
+    id = Column(Integer, primary_key=True)
+    value = Column(String)
+    recordings = relationship("Recording", backref=backref("repeat"))

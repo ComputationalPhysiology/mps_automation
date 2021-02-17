@@ -15,7 +15,8 @@ from . import model
 logger = logging.getLogger(__name__)
 
 DistinctValues = namedtuple(
-    "DistinctValues", ["doses", "drugs", "pacing", "media", "chips", "trace_types"]
+    "DistinctValues",
+    ["doses", "drugs", "pacing", "media", "chips", "trace_types", "repeats"],
 )
 
 
@@ -40,6 +41,7 @@ class View:
         drugs_nr = self._format_str("drug", self.distinct_values.drugs)
         media_nr = self._format_str("media", self.distinct_values.media)
         trace_type_nr = self._format_str("trace_type", self.distinct_values.trace_types)
+        repeat_nr = self._format_str("repeat", self.distinct_values.repeats)
         df = pd.Series(
             {
                 "drugs": drugs_nr,
@@ -48,8 +50,10 @@ class View:
                 "media": media_nr,
                 "trace_type": trace_type_nr,
                 "chips": chips_nr,
+                "repeats": repeat_nr,
             }
         )
+
         return df
 
     @property
@@ -76,6 +80,9 @@ class View:
 
         Trace types (recordings):
         {df.trace_type}
+
+        Repeats (recordings):
+        {df.repeats}
 
         """
         )
@@ -105,16 +112,26 @@ class View:
                     delist(x)
                     for x in self.session.query(model.TraceType.value).distinct()
                 ],
+                repeats=[
+                    delist(x) for x in self.session.query(model.Repeat.value).distinct()
+                ],
             )
         return self._distinct_values
 
     def get_all(
-        self, chip=None, pacing=None, trace_type=None, dose=None, media=None, drug=None
+        self,
+        chip=None,
+        pacing=None,
+        trace_type=None,
+        dose=None,
+        media=None,
+        drug=None,
+        repeat=None,
     ):
 
         args = []
 
-        for x in ["chip", "pacing", "media", "dose", "drug", "trace_type"]:
+        for x in ["chip", "pacing", "media", "dose", "drug", "trace_type", "repeat"]:
             if eval(x) is not None:
                 args.append(getattr(model.Recording, x).has(value=eval(x)))
 
@@ -122,13 +139,14 @@ class View:
 
     def plot_trace(self, folder):
         logger.info("Plot traces...")
-        for (drug, trace_type, pacing, dose, media, chip) in it.product(
+        for (drug, trace_type, pacing, dose, media, chip, repeat) in it.product(
             self.distinct_values.drugs,
             ["calcium", "voltage"],
             self.distinct_values.pacing,
             self.distinct_values.doses,
             self.distinct_values.media,
             self.distinct_values.chips,
+            self.distinct_values.repeats,
         ):
             path = (
                 Path(folder)
@@ -136,7 +154,7 @@ class View:
                 .joinpath(drug)
                 .joinpath("-".join([trace_type, pacing]))
                 .joinpath("-".join([chip, media]))
-                .joinpath(dose)
+                .joinpath("-".join([dose, repeat]))
                 .with_suffix(".png")
             )
             recs = self.get_all(
@@ -146,6 +164,7 @@ class View:
                 dose=dose,
                 trace_type=trace_type,
                 pacing=pacing,
+                repeat=repeat,
             )
             if recs.count() == 0:
                 continue
@@ -179,6 +198,7 @@ class View:
             "media",
             "chip",
             "dose",
+            "repeat",
             "APD30",
             "cAPD30",
             "APD80",
@@ -189,13 +209,14 @@ class View:
             "bad_trace",
         ]
         data = []
-        for (drug, trace_type, pacing, dose, media, chip) in it.product(
+        for (drug, trace_type, pacing, dose, media, chip, repeat) in it.product(
             self.distinct_values.drugs,
             ["calcium", "voltage"],
             self.distinct_values.pacing,
             self.distinct_values.doses,
             self.distinct_values.media,
             self.distinct_values.chips,
+            self.distinct_values.repeats,
         ):
             recs = self.get_all(
                 drug=drug,
@@ -204,10 +225,11 @@ class View:
                 dose=dose,
                 trace_type=trace_type,
                 pacing=pacing,
+                repeat=repeat,
             )
             if recs.count() == 0:
                 # Missing value
-                f = {}
+                continue
             else:
                 if recs.count() > 1:
                     paths = list(map(lambda x: x.path, recs))
@@ -231,6 +253,7 @@ class View:
                     media,
                     chip,
                     dose,
+                    repeat,
                     f.get("apd30", np.nan),
                     f.get("capd30", np.nan),
                     f.get("apd80", np.nan),
@@ -253,7 +276,7 @@ class View:
         for trace_type, df_trace in df.groupby("trace_type"):
             for pacing, df_pacing in df_trace.groupby("pacing"):
                 with pd.ExcelWriter(filename, mode="a") as writer:
-                    df_pacing.sort_values(by=["chip", "dose"]).to_excel(
+                    df_pacing.sort_values(by=["chip", "dose", "repeat"]).to_excel(
                         writer, "-".join([trace_type, pacing])
                     )
 

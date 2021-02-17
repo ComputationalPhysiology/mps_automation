@@ -38,6 +38,11 @@ def check_valid_media(media_str: str):
     pass
 
 
+def check_valid_repeat(repeat_str: str):
+    # Implement logic here to check for valid repeats
+    pass
+
+
 def check_valid_pacing(pacing_str: str):
     if pacing_str == "":
         raise ValueError
@@ -89,6 +94,10 @@ def get_media(session: SessionType, media_str: str):
     return _get_x(session, media_str, "Media", check_valid_media)
 
 
+def get_repeat(session: SessionType, repeat_str: str):
+    return _get_x(session, repeat_str, "Repeat", check_valid_repeat)
+
+
 def get_trace_type(session: SessionType, trace_type_str: str):
     return _get_x(session, trace_type_str, "TraceType", check_valid_trace_type)
 
@@ -120,6 +129,7 @@ def add_data_to_database(session, data, folder, recompute=False):
     media = get_media(session, data.get("media", ""))
     dose = get_dose(session, data.get("dose", ""))
     pacing = get_pacing(session, data.get("pacing_frequency", ""))
+    repeat = get_repeat(session, data.get("repeat", ""))
     trace_type = get_trace_type(session, data.get("trace_type", ""))
 
     recording.analysis = analysis
@@ -129,6 +139,7 @@ def add_data_to_database(session, data, folder, recompute=False):
     recording.trace_type = trace_type
     recording.chip = chip
     recording.media = media
+    recording.repeat = repeat
     session.add(recording)
     session.commit()
 
