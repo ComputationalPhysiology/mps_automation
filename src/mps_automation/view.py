@@ -8,7 +8,8 @@ from textwrap import dedent
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sqlalchemy import and_, engine
+from sqlalchemy import and_
+from sqlalchemy import engine
 
 from . import model
 
@@ -31,7 +32,7 @@ class View:
             [
                 f"{y}: ({t})"
                 for y, t in zip(lst, get_recordings_for_x(self.session, x, lst))
-            ]
+            ],
         )
 
     def get_number_of_recordings(self):
@@ -51,7 +52,7 @@ class View:
                 "trace_type": trace_type_nr,
                 "chips": chips_nr,
                 "repeats": repeat_nr,
-            }
+            },
         )
 
         return df
@@ -84,7 +85,7 @@ class View:
         Repeats (recordings):
         {df.repeats}
 
-        """
+        """,
         )
 
         return s
@@ -94,7 +95,10 @@ class View:
         if not hasattr(self, "_distinct_values"):
             self._distinct_values = DistinctValues(
                 doses=sorted(
-                    [delist(x) for x in self.session.query(model.Dose.value).distinct()]
+                    [
+                        delist(x)
+                        for x in self.session.query(model.Dose.value).distinct()
+                    ],
                 ),
                 drugs=[
                     delist(x) for x in self.session.query(model.Drug.value).distinct()
@@ -234,7 +238,7 @@ class View:
                 if recs.count() > 1:
                     paths = list(map(lambda x: x.path, recs))
                     logger.warning(
-                        f"Warning: The following paths have the same parameters {paths}"
+                        f"Warning: The following paths have the same parameters {paths}",
                     )
                     logger.warning(f"Will only use {paths[0]}")
 
@@ -262,7 +266,7 @@ class View:
                     f.get("beating_frequency", np.nan),
                     f.get("num_eads", 0) > 0,
                     bad_trace,
-                ]
+                ],
             )
 
         df_info = {"timestamp": datetime.datetime.now().isoformat()}
@@ -277,7 +281,8 @@ class View:
             for pacing, df_pacing in df_trace.groupby("pacing"):
                 with pd.ExcelWriter(filename, engine="openpyxl", mode="a") as writer:
                     df_pacing.sort_values(by=["chip", "dose", "repeat"]).to_excel(
-                        writer, "-".join([trace_type, pacing])
+                        writer,
+                        "-".join([trace_type, pacing]),
                     )
 
         logger.info(f"Done creating excel file at {filename}.")

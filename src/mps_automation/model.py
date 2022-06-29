@@ -1,6 +1,12 @@
-from sqlalchemy import JSON, Column, ForeignKey, Integer, String
-from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy import Column
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import JSON
+from sqlalchemy import String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy.orm import backref
+from sqlalchemy.orm import relationship
 
 Base: DeclarativeMeta = declarative_base()
 

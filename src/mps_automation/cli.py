@@ -48,7 +48,7 @@ def main(
     if config_file_.suffix not in valid_extensions:
         typer.echo(
             f"Config file has an invalid extension. Expected of of "
-            f"{valid_extensions} got {config_file_.suffix}"
+            f"{valid_extensions} got {config_file_.suffix}",
         )
         raise typer.Exit(code=3)
 

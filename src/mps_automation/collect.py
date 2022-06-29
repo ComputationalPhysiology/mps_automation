@@ -1,7 +1,8 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 
 import mps
 import numpy as np
@@ -171,7 +172,7 @@ def get_analysis(folder, data) -> Dict[str, Any]:
     outdir = path.parent.joinpath(path.stem)
     if outdir.joinpath("data.npy").is_file():
         return serialize_numpy_dict(
-            np.load(outdir.joinpath("data.npy"), allow_pickle=True).item()
+            np.load(outdir.joinpath("data.npy"), allow_pickle=True).item(),
         )
 
     # Run analyis

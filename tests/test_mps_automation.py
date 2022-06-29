@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """Tests for `mps_automation` package."""
 import sys
 from pathlib import Path
