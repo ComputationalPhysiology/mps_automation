@@ -8,7 +8,7 @@ from textwrap import dedent
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sqlalchemy import and_
+from sqlalchemy import and_, engine
 
 from . import model
 
@@ -284,7 +284,7 @@ class View:
 
 
 def delist(x):
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, (list, tuple, engine.Row)):
         return x[0]
     else:
         return x
