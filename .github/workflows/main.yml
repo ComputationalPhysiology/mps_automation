@@ -26,12 +26,6 @@ jobs:
       - name: Install dependencies
         run: |
           make dev
-      - name: Lint with flake8
-        run: |
-          make lint
-      - name: Type checking with mypy
-        run: |
-          make type
       - name: Test with pytest
         run: |
           make test
@@ -59,12 +53,6 @@ jobs:
       - name: Install dependencies
         run: |
           make dev
-      - name: Lint with flake8
-        run: |
-          make lint
-      - name: Type checking with mypy
-        run: |
-          make type
       - name: Test with pytest
         run: |
           make test
